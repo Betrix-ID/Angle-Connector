@@ -1,1 +1,1 @@
-> ! [git text](/Selecting/img/IFS.png)
+> ![git text](/Selecting/img/IFS.png)
