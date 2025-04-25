@@ -2,6 +2,9 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <cstdio>
+#include <cstring>
+
 using namespace std;
 
 void shell(const char* message) {
@@ -12,19 +15,24 @@ void shell(const char* message) {
 void clearAngleSettings() {
     cout << "\nDescription:\n"
          << "  [clearAngleSettings()]\n"
-         << "  Menghapus semua pengaturan sistem terkait ANGLE dan driver grafis dari Global Settings.\n"
-         << "  Ini adalah langkah awal sebelum menerapkan konfigurasi baru.\n";
-         
+         << "  This function is responsible for resetting all ANGLE-related system settings.\n"
+         << "  It scans the global settings database for keys related to ANGLE and graphics drivers,\n"
+         << "  then deletes them to ensure a clean slate before applying new configurations.\n"
+         << "  This step is crucial to avoid conflicts between old settings and the new rendering backend.\n";
+
     system("for key in $(cmd settings list global | grep angle | cut -f1 -d=); do cmd settings delete global \"$key\"; done > /dev/null 2>&1");
-    system("for key in $(cmd settings list global | grep driver | cut -f1 -d=); do cmd settings delete global \"$key\"; done > /dev/null 2>&1");   
+    system("for key in $(cmd settings list global | grep driver | cut -f1 -d=); do cmd settings delete global \"$key\"; done > /dev/null 2>&1");
 }
 
 void setupAngleVulkan() {
     cout << "\nDescription:\n"
          << "  [setupAngleVulkan()]\n"
-         << "  Mengatur sistem untuk menggunakan ANGLE backend Vulkan.\n"
-         << "  Termasuk penghapusan setting lama, pemberian izin ke package, dan setprop renderer.\n"
-         << "  Cocok untuk perangkat yang mendukung Vulkan untuk performa grafis lebih baik.\n";
+         << "  This function configures the Android device to use ANGLE with the Vulkan backend.\n"
+         << "  It begins by clearing any existing ANGLE or graphics driver settings, then sets\n"
+         << "  new global values to enable ANGLE and Vulkan rendering through 'skiavk'.\n"
+         << "  Additional steps include granting necessary permissions to the ANGLE package,\n"
+         << "  and optimizing the system by stopping user apps and clearing cache for better performance.\n"
+         << "  Recommended for devices with stable Vulkan support seeking improved graphical performance.\n";
          
     clearAngleSettings();
     const char* cmds[] = {
@@ -32,21 +40,51 @@ void setupAngleVulkan() {
         "cmd settings put global angle_debug_package org.chromium.angle",
         "setprop debug.angle.libs.suffix angle_in_apk",
         "pm grant com.android.angle android.permission.WRITE_SECURE_SETTINGS",
-        "setprop debug.hwui.renderer vulkan",
+        "setprop debug.hwui.renderer skiavk",
         "setprop debug.hwui.use_vulkan 1",
         "sync"
     };
+
     for (const auto& cmd : cmds) system(cmd);
-    shell("Successfully Applay custem Angle Vulkan");
+
+    FILE* fp = popen("pm list package -3 | cut -f2 -d:", "r");
+    if (!fp) {
+        perror("Failed to run command");
+        return;
+    }
+
+    char package[256];
+    while (fgets(package, sizeof(package), fp)) {
+        package[strcspn(package, "\n")] = 0;
+
+        if (strcmp(package, "me.piebridge.brevent") != 0) {
+            char command[512];
+            snprintf(command, sizeof(command), "cmd activity force-stop --user 0 %s", package);
+            system(command);
+            snprintf(command, sizeof(command), "rm -rf /sdcard/Android/data/%s/cache", package);
+            system(command);
+            snprintf(command, sizeof(command), "cmd activity profile stop --user 0 %s", package);
+            system(command);
+            snprintf(command, sizeof(command), "cmd activity make-uid-idle --user 0 %s", package);
+            system(command);
+            printf("  Cache cleared for %s\n", package);
+        }
+    }
+
+    pclose(fp);
+    shell("Successfully Applied custom Angle Vulkan");
 }
 
 void setupAngleOpenGLES() {
     cout << "\nDescription:\n"
          << "  [setupAngleOpenGLES()]\n"
-         << "  Mengatur sistem untuk menggunakan ANGLE backend OpenGL ES.\n"
-         << "  Cocok untuk kompatibilitas lebih luas, terutama di perangkat yang tidak stabil dengan Vulkan.\n"
-         << "  Proses ini juga memberi izin dan sinkronisasi sistem agar perubahan aktif.\n";
-         
+         << "  This function sets up the Android device to utilize ANGLE with the OpenGL ES backend.\n"
+         << "  It is ideal for devices that have compatibility issues or instability with Vulkan.\n"
+         << "  The routine begins by purging previous driver settings, then applies OpenGL-specific props,\n"
+         << "  such as forcing the use of GLES and setting ANGLE driver properties accordingly.\n"
+         << "  As with the Vulkan setup, it also grants permissions and clears app cache to maximize efficiency.\n"
+         << "  Useful for improving rendering on mid-range or older Android devices.\n";
+   
     clearAngleSettings();
     const char* cmds[] = {
         "cmd settings put global angle_gl_driver_all_angle 1",
@@ -57,18 +95,47 @@ void setupAngleOpenGLES() {
         "setprop debug.hwui.force_opengles 1",
         "sync"
     };
+
     for (const auto& cmd : cmds) system(cmd);
-    shell("Successfully Applay custem Angle Opengles");
+
+    FILE* fp = popen("pm list package -3 | cut -f2 -d:", "r");
+    if (!fp) {
+        perror("Failed to run command");
+        return;
+    }
+
+    char package[256];
+    while (fgets(package, sizeof(package), fp)) {
+        package[strcspn(package, "\n")] = 0;
+
+        if (strcmp(package, "me.piebridge.brevent") != 0) {
+            char command[512];
+            snprintf(command, sizeof(command), "cmd activity force-stop --user 0 %s", package);
+            system(command);
+            snprintf(command, sizeof(command), "rm -rf /sdcard/Android/data/%s/cache", package);
+            system(command);
+            snprintf(command, sizeof(command), "cmd activity profile stop --user 0 %s", package);
+            system(command);
+            snprintf(command, sizeof(command), "cmd activity make-uid-idle --user 0 %s", package);
+            system(command);
+            printf("  Cache cleared for %s\n", package);
+        }
+    }
+
+    pclose(fp);
+    shell("Successfully Applied custom Angle OpenGLES");
 }
 
 void launchAngleApp() {
     cout << "\nDescription:\n"
          << "  [launchAngleApp()]\n"
-         << "  Mencoba menjalankan MainActivity dari aplikasi ANGLE.\n"
-         << "  Memberikan izin WRITE_SECURE_SETTINGS ke aplikasi sebelum diluncurkan.\n"
-         << "  Berguna untuk pengujian atau verifikasi apakah ANGLE terinstal dan aktif.\n";
-         
+         << "  This function attempts to launch the main activity of the ANGLE application manually.\n"
+         << "  It also grants WRITE_SECURE_SETTINGS permission to the ANGLE package to ensure full\n"
+         << "  system access is available for the renderer configurations.\n"
+         << "  This is particularly useful for testing whether ANGLE is installed and operational,\n"
+         << "  or for verifying changes after switching graphics backends.\n";
+
     system("cmd activity start -n com.android.angle/com.android.angle.MainActivity");
     system("pm grant com.android.angle android.permission.WRITE_SECURE_SETTINGS");
-    shell("Successfully Applay start application Angle....");
+    shell("Successfully launched Angle application");
 }
