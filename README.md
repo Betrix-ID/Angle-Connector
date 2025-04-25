@@ -2,10 +2,6 @@
 
 <h1>⚡ Angle Connector - ANGLE Renderer Switch Utility</h1>
 
-<p><strong>Version:</strong> 1.0 [ ANGLE Custom Switch ]<br>
-<strong>Author:</strong> Angle Connector Team<br>
-<strong>License:</strong> &copy; 2025 Angle Connector Project. All rights reserved.</p>
-
 <hr/>
 
 > [!NOTE]
