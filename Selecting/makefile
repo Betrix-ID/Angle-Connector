@@ -1,12 +1,14 @@
 CC = g++
-CFLAGS = -O3 -s
-TARGET = arm64
+CFLAGS = -O3 -Os -s
+TARGET = arm
 SRC = main.cpp lib.cpp
+ST = strip
 all: banner $(TARGET)
 
 # Build rule
 $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+	$(ST) $(TARGET)
 	@echo ""
 	@echo ">> Build finished successfully!"
 

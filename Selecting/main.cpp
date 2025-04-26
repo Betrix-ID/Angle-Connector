@@ -71,15 +71,22 @@ int main(int argc, char *argv[]) {
             sleep(1);
             cout << "\n- Applying Vulkan backend via ANGLE...\n";
             setupAngleVulkan();
+            system("cmd activity start -a android.intent.action.VIEW -d https://www.instagram.com/pai_calll?igsh=OGZnYmZ5OGdiMG9r & ");
         } 
         else if (opt == "-L") {
             sleep(1);
             cout << "\n- Applying OpenGLES backend via ANGLE...\n";
             setupAngleOpenGLES();
+            system("cmd activity start -a android.intent.action.VIEW -d https://www.instagram.com/pai_calll?igsh=OGZnYmZ5OGdiMG9r & ");
         } 
         else if (opt == "-R") {
             sleep(1);
-            cout << "\n- Resetting all ANGLE modifications...\n";
+            cout << "\n- Resetting all ANGLE modifications...\n"
+                 << "\nDescription:\n"
+                 << "  This function is responsible for resetting all ANGLE-related system settings.\n"
+                 << "  It scans the global settings database for keys related to ANGLE and graphics drivers,\n"
+                 << "  then deletes them to ensure a clean slate before applying new configurations.\n"
+                 << "  This step is crucial to avoid conflicts between old settings and the new rendering backend.\n\n";
             clearAngleSettings();
             sleep(1);
             shell("success: Reset angle setings to default...");

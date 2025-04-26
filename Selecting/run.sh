@@ -49,8 +49,6 @@ shell() {
     echo
     echo "   Priority Angle Connector Custem. "
     sleep 2
-    echo
-    echo
      rm -rf /data/local/tmp/zte
      cp /sdcard/Selecting/zte /data/local/tmp 
      chmod +x /data/local/tmp/zte
